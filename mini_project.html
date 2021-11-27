@@ -1,0 +1,44 @@
+<html>
+<head>
+<style>
+body {
+	margin 0;
+	overflow: hidden;
+}
+</style>
+</head>
+<body>
+<script type = "module">
+import * as THREE from "https://web.cs.manchester.ac.uk/three/three.js-master/build/three.module.js";
+import { OrbitControls } from  "https://web.cs.manchester.ac.uk/three/three.js-master/examples/jsm/controls/OrbitControls.js";
+
+function init(){
+
+	// Init scene...
+	scene = new THREE.Scene();
+
+	// Init camera...
+	camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 10000 );
+	camera.position.set( 0, 0, 1000 );
+
+	// Init renderer...
+	renderer = new THREE.WebGLRenderer();
+	renderer.setClearColor( 0x000000, 1.0 );
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	document.body.appendChild( renderer.domElement );
+
+	// Init camera orbiting controls...
+	// controls = new OrbitControls( camera, renderer.domElement );
+	// controls.autoRotate = true;
+
+
+}
+
+function animate(){
+	requestAnimationFrame( animate );
+
+	renderer.render( scene, camera );
+}
+</script>
+</body>
+</html>
