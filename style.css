@@ -1,0 +1,48 @@
+body {
+	margin: 0;
+	overflow: hidden;
+}
+
+div.ui {
+	position: fixed;
+	top: 0%;
+	
+	width: auto;
+	color: lightgray;
+	
+}
+
+div.ui input.number {
+	background: transparent;
+	border: none;
+	color: lightgray;
+	text-align: center;
+	width: 5em;
+}
+
+div.ui p {
+	text-align: center;
+	color: lightgray;
+}
+
+form.form-horizontal p {
+	color: lightgray;
+}
+
+div.right {
+	text-align: right;
+	right: 1%;
+}
+
+div.left {
+	text-align: left;
+	left: 1%;
+}
+
+div.right form.form-horizontal p {
+	text-align: right;
+}
+
+div.left form.form-horizontal p {
+	text-align: left;
+}

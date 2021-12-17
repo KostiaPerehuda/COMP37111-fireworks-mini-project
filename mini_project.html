@@ -1,53 +1,276 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<style>
-	body {
-		margin 0;
-		overflow: hidden;
-	}
-	</style>
 	<meta charset="utf-8">
-	<title></title>
+	<link rel="stylesheet" href="style.css">
+	<script src="https://web.cs.manchester.ac.uk/three/js/stats.min.js"></script>
+	<title>Fireworks</title>
 </head>
-<body>
+<body>	
+
+<div class="ui left">
+	<p><u>Stats:</u></p>
+	<div id="fps_stats"></div>
+	<label id="n_of_particles" start_text="Number of particles: " end_text="">Number of particles: 0</label>
+	<br><label id="n_of_emitters" start_text="Number of emitters: " end_text="">Number of emitters: 1</label>
+
+	<p><u>Environment parameters:</u></p>
+	<form id="environment_params" class="form-horizontal" onsubmit="return false">
+		
+		
+		<div class="form-group">
+			<label for="name">Framerate of your monitor (frames/sec):</label>
+			<input class="number" type="number" name="fps" id="fps" step="1" min="1" value="" onkeydown="return false" required/>
+		</div>
+		<div class="form-group">
+			<label for="name">Acceleration due to gravity (m/sec^2):</label>
+			<input class="number" type="number" name="gravity" id="gravity" step="0.1" min="0" value="" required/>
+		</div>
+		<div class="form-group">
+			<label for="drag" start_text="Drag / Speed reduction by " end_text="%/s">Drag / Speed reduction by 95.4%/s</label>
+			<input class="form-control" type="range" name="drag" id="drag" step="0.1" min="0" max="100" value="95.4" onchange="updateLabel(this)" required/>
+		</div>
+
+		<input type="submit" value="Apply"/>
+	</form>
+
+	<p><u>Emitter controls:</u></p>
+	<form class="form-horizontal" onsubmit="return false">
+		<input type="button" id="add_emitter" value="Add emitter"/>
+		<input type="button" id="remove_emitter" value="Remove last emitter"/>
+	</form>
+</div>
+
+<div class="ui right">
+
+	<p><u>Emitter parameters:</u></p>
+
+	<form id="emitter_params" class="form-horizontal" onsubmit="return false">
+
+		<div class="form-group">
+			<label for="apply_to">Apply to Emitter with id:</label>
+			<input class="number" type="number" name="apply_to" id="apply_to" step="1" min="1" value="1" onkeydown="return false" required/>
+		</div>
+
+
+		<p><u>Position:</u></p>
+
+		<div class="form-group">
+			<label for="x" start_text="x (" end_text="):">x (0):</label>
+			<input class="form-control" type="range" name="x" id="x" step="1" min="-100" max="100" value="0" onchange="updateLabel(this)" required/>
+		</div>
+
+		<input type="hidden" id="y" value="0">
+
+		<div class="form-group">
+			<label for="z" start_text="z (" end_text="):">z (0):</label>
+			<input class="form-control" type="range" name="z" id="z" step="1" min="-100" max="100" value="0" onchange="updateLabel(this)" required/>
+		</div>
+
+		<p><u>Angle of Ejection:</u></p>
+		<div class="form-group">
+			<label for="rotation" start_text="Rotation (" end_text=" deg):">Rotation (0 deg):</label>
+			<input class="form-control" type="range" name="rotation" id="rotation" step="1" min="0" max="359" value="0" onchange="updateLabel(this)" required/>
+		</div>
+
+		<div class="form-group">
+			<label for="uplift" start_text="Uplift (" end_text=" deg):">Uplift (90 deg):</label>
+			<input class="form-control" type="range" name="uplift" id="uplift" step="1" min="0" max="90" value="90" onchange="updateLabel(this)" required/>
+		</div>
+
+		<div class="form-group">
+			<label for="angular_variance" start_text="Angular variance (" end_text=" deg):">Angular variance (10 deg):</label>
+			<input class="form-control" type="range" name="angular_variance" id="angular_variance" step="1" min="0" max="45" value="10" onchange="updateLabel(this)" required/>
+		</div>
+
+		<p><u>Acceleration of new particles:</u></p>
+		<div class="form-group">
+			<label for="acceleration_mean" start_text="Mean acceleration (" end_text=" m/s):">Mean acceleration (80 m/s):</label>
+			<input class="form-control" type="range" name="acceleration_mean" id="acceleration_mean" step="1" min="0" max="200" value="80" onchange="updateLabel(this)" required/>
+		</div>
+
+		<div class="form-group">
+			<label for="acceleration_variance" start_text="Variance of acceleration (" end_text=" m/s):">Variance of acceleration (0 m/s):</label>
+			<input class="form-control" type="range" name="acceleration_variance" id="acceleration_variance" step="1" min="0" max="200" value="0" onchange="updateLabel(this)" required/>
+		</div>
+
+		<p><u>Lifetime of new particles:</u></p>
+		<div class="form-group">
+			<label for="lifetime_mean" start_text="Mean lifetime (" end_text=" s):">Mean lifetime (3 s):</label>
+			<input class="form-control" type="range" name="lifetime_mean" id="lifetime_mean" step="0.1" min="0" max="5" value="3" onchange="updateLabel(this)" required/>
+		</div>
+
+		<div class="form-group">
+			<label for="lifetime_variance" start_text="Variance of lifetime (" end_text=" s):">Variance of lifetime (0 s):</label>
+			<input class="form-control" type="range" name="lifetime_variance" id="lifetime_variance" step="0.1" min="0" max="1" value="0" onchange="updateLabel(this)" required/>
+		</div>
+		<p><u>Level of explosiveness of new particles:</u></p>
+		<div class="form-group">
+			<label for="level" start_text="Level (" end_text="):">Level (1):</label>
+			<input class="form-control" type="range" name="level" id="level" step="1" min="0" max="3" value="1" onchange="updateLabel(this)" required/>
+		</div>
+
+		<p><u>Particle trace:</u></p>
+		<div class="form-group">
+			<label for="trace_length" start_text="Length of trace buffer (" end_text=" postions):">Length of trace buffer (5 postions):</label>
+			<input class="form-control" type="range" name="trace_length" id="trace_length" step="1" min="2" max="60" value="5" onchange="updateLabel(this)" required/>
+		</div>
+
+		<div class="form-group">
+			<label for="trace_step" start_text="Period of position sampling (" end_text=" postions per buffer entry):">Period of position sampling (3 postions per buffer entry):</label>
+			<input class="form-control" type="range" name="trace_step" id="trace_step" step="1" min="1" max="60" value="3" onchange="updateLabel(this)" required/>
+		</div>
+
+		<input type="submit" value="Apply"/>	
+	</form>
+
+	<p><u>Particle parameters:</u></p>
+	<form id="particle_params" class="form-horizontal" onsubmit="return false">
+
+		<p><u>Explosion:</u></p>
+
+		<div class="form-group">
+			<label for="number_of_new_particles" start_text="Number of new particles (" end_text="):">Number of new particles (50):</label>
+			<input class="form-control" type="range" name="number_of_new_particles" id="number_of_new_particles" step="1" min="0" max="400" value="50" onchange="updateLabel(this)" required/>
+		</div>
+
+		<div class="form-group">
+			<label for="speed_of_children" start_text="Speed of child particles relative to parent (x" end_text="):">Speed of child particles relative to parent (x2):</label>
+			<input class="form-control" type="range" name="speed_of_children" id="speed_of_children" step="0.1" min="0" max="10" value="2" onchange="updateLabel(this)" required/>
+		</div>
+
+		<div class="form-group">
+			<label for="acceleration_of_children" start_text="Acceleration of child particles relative to parent (x" end_text="):">Acceleration of child particles relative to parent (x1):</label>
+			<input class="form-control" type="range" name="acceleration_of_children" id="acceleration_of_children" step="0.1" min="0" max="10" value="1" onchange="updateLabel(this)" required/>
+		</div>
+
+		<div class="form-group">
+			<label for="lifetime_of_children" start_text="Lifetime of child particles relative to parent (x" end_text="):">Lifetime of child particles relative to parent (x0.6):</label>
+			<input class="form-control" type="range" name="lifetime_of_children" id="lifetime_of_children" step="0.01" min="0" max="2" value="0.6" onchange="updateLabel(this)" required/>
+		</div>
+
+		<input type="submit" value="Apply"/>
+	</form>
+</div>
+<script type="text/javascript">
+	function updateLabel(input) {
+		input.labels.forEach(label => {
+			label.innerHTML = label.attributes.start_text.value+input.value+label.attributes.end_text.value;
+		});
+	}
+</script>
 <script type = "module">
 import * as THREE from "https://web.cs.manchester.ac.uk/three/three.js-master/build/three.module.js";
 import { OrbitControls } from  "https://web.cs.manchester.ac.uk/three/three.js-master/examples/jsm/controls/OrbitControls.js";
 
-const particleGeometry = new THREE.BufferGeometry();
-particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0], 3));
 
-// const material = new THREE.PointsMaterial( { size: 1, sizeAttenuation: false } );
-const particleMaterial = new THREE.PointsMaterial( { color: 0xAAAAAA } );
+var scene, renderer, camera, controls, cameraTarget, stats;
+var particleManager, emitters, constants;
+var run, move;
 
-var constants = {
-	dt: 1/60,
-	g: -9.81,
+
+function initGlobalParameters() {
+	// Init global parameters
+	constants = {
+		dt: 1/60,
+		g: -9.8,
+		drag: 0.046,
+			particleExplosion : {
+			numberOfNewParticles: 50,
+			speed: 2,
+			acceleration: 1,
+			timeToLive: 0.6,
+		},
+	}
+	constants.g *= (constants.dt*constants.dt);
+	constants.drag **= constants.dt;
+
+	// Init flags for camera motion...
+	run = true;
+	move = {
+		up: false,
+		down: false,
+		left: false,
+		right: false,
+	}
 }
-// constants.g *= constants.dt;
 
 
-function addVectors(v1, v2) {
-	return {x: v1.x+v2.x, y: v1.y+v2.y, z: v1.z+v2.z};
+function init(){
+	initGlobalParameters();
+
+	// Init scene...
+	scene = new THREE.Scene();
+
+	// Init renderer...
+	renderer = new THREE.WebGLRenderer();
+	renderer.setClearColor( 0x000000, 1.0 );
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	document.body.appendChild( renderer.domElement );
+
+	// Init camera...
+	camera = new THREE.PerspectiveCamera(90*window.innerHeight/window.innerWidth, window.innerWidth/window.innerHeight, 0.1, 10000);
+	camera.position.set(-90, 90, 210);
+	cameraTarget = new THREE.Vector3(0, 0, 0);
+	camera.lookAt(cameraTarget);
+
+	// Init camera orbiting controls...
+	controls = new OrbitControls( camera, renderer.domElement );
+	controls.autoRotate = true;
+	controls.target = cameraTarget;
+
+	// Init FPS stats...
+	stats = new Stats();
+	stats.showPanel(0);
+	document.body.appendChild(stats.dom);
+
+	// Init particle manager...
+	particleManager = new ParticleManager();
+
+	// Init particle emitter...
+	particleManager.addEmitter();
+
+	// Init keyboard controls...
+	new InputManager();
+
+	// Create ground...
+	const groundGeometry = new THREE.PlaneGeometry(200, 200);
+	const groundmaterial = new THREE.MeshBasicMaterial({color: 0x222222, side: THREE.DoubleSide});
+	const ground = new THREE.Mesh(groundGeometry, groundmaterial);
+	ground.rotateX(-Math.PI/2);
+	scene.add(ground);
 }
 
-function vector(x, y, z) {
-	return {x: x, y: y, z: z};
+
+function animate(){
+	stats.begin();
+	if (run) particleManager.updateAllParticles();
+
+	renderer.render( scene, camera );
+	requestAnimationFrame( animate );
+	stats.end();
 }
 
-function vectorFromV3(v) {
-	return {x: v.x, y: v.y, z: v.z};
-}
-
-function vectorToArray(v) {
-	return [v.x, v.y, v.z];
-}
 
 class Particle {
-	constructor(position, velocity, secondsToLive, level) {
+	constructor(position, velocity, acceleration, secondsToLive, color, traceLength, traceStep, level) {
+
+		this.traceLength = traceLength;
+		this.traceStep = traceStep;
+		this.bufferSize = this.traceLength*3;
+		this.positionsSize = this.bufferSize*this.traceStep;
+
+		this.positions = new Array(this.positionsSize);
+
+		for (var i = 0; i < this.positionsSize; i+=3) {
+			this.positions[i  ] = position.x;
+			this.positions[i+1] = position.y;
+			this.positions[i+2] = position.z;
+		}
+
 		// internal properties
-		this.velocity = velocity;
+		this.velocity = velocity.clone()
+		this.acceleration = acceleration;
 		this.timeToLive = secondsToLive;
 		this.totalTimeToLive = secondsToLive;
 		this.level = level;
@@ -55,36 +278,67 @@ class Particle {
 		this.isAlive = true;
 
 		// scene object
-		this.particle = new THREE.Points(particleGeometry, particleMaterial);
+		const particleGeometry = new THREE.BufferGeometry();
+
+		this.trace = new Float32Array(this.bufferSize);
+		particleGeometry.setAttribute('position', new THREE.BufferAttribute(this.trace, 3));
+
+		this.uniforms = {
+			maxDistance: {type: 'float', value: 7.0},
+			color: {value: color},
+		}
+
+		const material = new THREE.ShaderMaterial({
+			uniforms: this.uniforms,
+			fragmentShader: fragmentShader(),
+			vertexShader: vertexShader(),
+			blending: THREE.AdditiveBlending,
+			uniformsNeedUpdate : true,
+			transparent: true,
+		});
+
+		this.particle = new THREE.Line(particleGeometry, material);
 		this.particle.position.x = position.x;
 		this.particle.position.y = position.y;
 		this.particle.position.z = position.z;
-
 		scene.add(this.particle);
 	}
 
 	updateVelocity() {
-		this.velocity.y += constants.g * constants.dt;
+		this.velocity.multiplyScalar(constants.drag);
+		this.velocity.add(this.velocity.clone().normalize().multiplyScalar(this.acceleration));
+		this.velocity.y += constants.g;
 	}
 
-	updatePosition() {	
-		this.particle.position.x += this.velocity.x * constants.dt;
-		this.particle.position.y += this.velocity.y * constants.dt;
-		this.particle.position.z += this.velocity.z * constants.dt;
+	updatePosition() {
+		this.particle.position.add(this.velocity);
+	}
+
+	updateTrace() {
+		this.positions.shift();
+		this.positions.shift();
+		this.positions.shift();
+		this.positions.push(this.particle.position.x, this.particle.position.y, this.particle.position.z);
+
+		var idx;
+
+		for (var i = 0; i < this.bufferSize; i+=3) {
+			idx = i*this.traceStep;
+			this.trace[i  ] = this.positions[idx  ]-this.particle.position.x;
+			this.trace[i+1] = this.positions[idx+1]-this.particle.position.y;
+			this.trace[i+2] = this.positions[idx+2]-this.particle.position.z;
+		}
+
+		this.particle.geometry.attributes.position.needsUpdate = true;
+		this.uniforms.maxDistance.value = new THREE.Vector3(this.trace[0],this.trace[1],this.trace[2]).length();
 	}
 
 	updateLifetime() {
 		this.timeToLive -= constants.dt;
 
-		if (this.particle.position.y < 0) {
-			this.delete();
-			return;
-		}
-
-		if ((this.level == 2 && Math.abs(this.velocity.y) < 0.1) || this.timeToLive <= 0) {
+		if (this.particle.position.y < 0 || this.timeToLive <= 0) {
 			if (this.level > 0) {
-				console.log("Exploding from", this.particle.position, "beacuse ", this.timeToLive <= 0 ? "this.timeToLive <= 0" : this.velocity);
-				this.explode(7*this.level, 50*this.level);
+				this.explode();
 			}
 			this.delete();
 		}
@@ -93,6 +347,7 @@ class Particle {
 	update() {
 		this.updateVelocity();
 		this.updatePosition();
+		this.updateTrace();
 		this.updateLifetime();
 	}
 
@@ -101,37 +356,51 @@ class Particle {
 		scene.remove(this.particle);
 	}
 
-	explode(radius, particlesNumber) {
-		var v;
-		var pos = vectorFromV3(this.particle.position);
-
-		for (var i = 0; i < particlesNumber; i++) {
-			v = addVectors(this.randomPointOnASphrere(radius), this.velocity);
-			particleManager.addParticle(new Particle(pos, v, this.totalTimeToLive*0.6, this.level-1));
-		}
+	explode() {
+		const numberOfNewParticles = constants.particleExplosion.numberOfNewParticles;
+		const speed = constants.particleExplosion.speed*this.velocity.length();
+		const acceleration = constants.particleExplosion.acceleration*this.acceleration;
+		const timeToLive = constants.particleExplosion.timeToLive*this.totalTimeToLive;
 		
+		const pos = this.particle.position.clone();
+		var v;
+
+		for (var i = 0; i < numberOfNewParticles; i++) {
+			v = this.randomPointOnASphrere(speed);
+			v.add(this.velocity);
+			particleManager.addParticle(new Particle(pos, v, acceleration, timeToLive,
+				this.uniforms.color.value, this.traceLength, this.traceStep, this.level-1));
+		}
+	}
+
+	recomputeParams(old_dt, new_dt) {
+		this.acceleration = this.acceleration / old_dt / old_dt * new_dt * new_dt;
+		this.velocity.multiplyScalar(old_dt).multiplyScalar(new_dt);
 	}
 
 	// from https://karthikkaranth.me/blog/generating-random-points-in-a-sphere/
 	randomPointOnASphrere(radius) {
-	    var theta = Math.random() * 2.0*Math.PI;
-	    var phi = Math.random() * Math.PI;
-	    var sinTheta = Math.sin(theta); var cosTheta = Math.cos(theta);
-	    var sinPhi = Math.sin(phi); var cosPhi = Math.cos(phi);
-	    var x = radius * sinPhi * cosTheta;
-	    var y = radius * sinPhi * sinTheta;
-	    var z = radius * cosPhi;
+		var theta = Math.random() * 2.0*Math.PI;
+		var phi = Math.random() * Math.PI;
+		var sinTheta = Math.sin(theta); var cosTheta = Math.cos(theta);
+		var sinPhi = Math.sin(phi); var cosPhi = Math.cos(phi);
+		var x = radius * sinPhi * cosTheta;
+		var y = radius * sinPhi * sinTheta;
+		var z = radius * cosPhi;
 
-	    return {x: x, y: y, z: z};
+		return new THREE.Vector3(x, y, z);
 	}
 }
 
 
 class ParticleManager {
 	constructor() {
+		this.emitters = [];
 		this.particles = [];
 		this.newParticles = [];
 
+		this.particlesCounter = document.getElementById("n_of_particles");
+		this.emittersCounter = document.getElementById("n_of_emitters");
 	}
 
 	addParticle(p) {
@@ -148,124 +417,318 @@ class ParticleManager {
 			this.particles = this.particles.concat(this.newParticles);
 			this.newParticles = [];
 		}
-
 		this.particles = this.particles.filter(this.updateParticle);
+		this.particlesCounter.innerHTML = this.particlesCounter.attributes.start_text.value + this.particles.length;
 	}
+
+	recomputeParticlesParameters(old_dt, new_dt) {
+		this.particles.forEach(p => {p.recomputeParams(old_dt, new_dt);});
+	}
+
+	addEmitter() {
+		this.emitters.push(new Emitter(0, 0, 0, this));
+		this.emittersCounter.innerHTML = this.emittersCounter.attributes.start_text.value + this.emitters.length;
+	}
+
+	removeLastEmitter() {
+		this.emitters.pop()?.delete();
+		this.emittersCounter.innerHTML = this.emittersCounter.attributes.start_text.value + this.emitters.length;
+	}
+
+	getEmitters() {
+		return emitters;
+	}
+	
 }
 
 
 class Emitter {
 	constructor(x, y, z, particleManager) {
-		this.position = {x: x, y: y, z: z};
 		this.particleManager = particleManager;
 
+		this.position = new THREE.Vector3(x, y, z);
 		this.newParticleParameters = {
-			velocity: {
-				x: {mean: 0, variance: 2},
-				y: {mean: 30, variance: 5},
-				z: {mean: 0, variance: 2},
-			},
-			secondsToLive: {mean: 4, variance: 0},
-			level: 2,
+			rotation: this.degToRad(0),
+			uplift : this.degToRad(90),
+			angularVariance : this.degToRad(10),
+			speed: {mean: 1, variance: 0},
+			acceleration:  {mean: 80, variance: 0},
+			secondsToLive: {mean: 3, variance: 0},
+			color: {min: 0, max: 360},
+			level: 1,
+			traceLength: 5,
+			traceStep: 3,
 		}
+
+		const geometry = new THREE.ConeGeometry( 1, 1, 8, 1, true );
+		const material = new THREE.MeshBasicMaterial( {color: 0xffff00, wireframe: true} );
+		this.cone = new THREE.Mesh( geometry, material );
+
+		scene.add( this.cone );
+		this.positionCone();
+	}
+
+	delete() {
+		scene.remove(this.cone);
+	}
+
+	setParams(x, y, z, rotation, uplift, angularVariance,
+		accelerationMean, accelerationVariance, lifetimeMean, lifetimeVariance, traceLength, traceStep, level) {
+		this.position = new THREE.Vector3(x, y, z);
+		this.newParticleParameters.rotation        = this.degToRad(rotation);
+		this.newParticleParameters.uplift          = this.degToRad(uplift);
+		this.newParticleParameters.angularVariance = this.degToRad(angularVariance);
+
+		this.newParticleParameters.acceleration.mean = accelerationMean;
+		this.newParticleParameters.acceleration.variance = accelerationVariance;
+		this.newParticleParameters.secondsToLive.mean = lifetimeMean;
+		this.newParticleParameters.secondsToLive.variance = lifetimeVariance;
+
+		this.newParticleParameters.traceLength = traceLength;
+		this.newParticleParameters.traceStep = traceStep;
+
+		this.newParticleParameters.level = level;
+
+		this.positionCone();
+	}
+
+	positionCone() {
+		this.cone.position.x = this.position.x;
+		this.cone.position.y = this.position.y;
+		this.cone.position.z = this.position.z;
+
+		
+		var length = this.newParticleParameters.acceleration.mean/20;
+		this.cone.scale.y = Math.cos(this.newParticleParameters.angularVariance)*length;
+		this.cone.scale.x = Math.sin(this.newParticleParameters.angularVariance)*length;
+		this.cone.scale.z = this.cone.scale.x;
+
+		
+		this.cone.rotation.y = -this.newParticleParameters.rotation;
+		this.cone.rotation.z = Math.PI/2+this.newParticleParameters.uplift;
+		this.cone.translateY(-this.cone.scale.y/2);	
+	}
+
+	degToRad(deg) {
+		return deg*Math.PI/180;
 	}
 
 	emitParticle() {
-		var vx = this.random(this.newParticleParameters.velocity.x.mean, this.newParticleParameters.velocity.x.variance);
-		var vy = this.random(this.newParticleParameters.velocity.y.mean, this.newParticleParameters.velocity.y.variance);
-		var vz = this.random(this.newParticleParameters.velocity.z.mean, this.newParticleParameters.velocity.z.variance);
 		var secondsToLive = this.random(this.newParticleParameters.secondsToLive.mean, this.newParticleParameters.secondsToLive.variance);
 
 		this.particleManager.addParticle(new Particle(
-			vector(this.position.x, this.position.y, this.position.z),
-			vector(vx, vy, vz), secondsToLive, this.newParticleParameters.level));
+			this.position.clone(), this.velocity(), this.acceleration(),
+			this.secondsToLive(), this.color(), this.newParticleParameters.traceLength,
+			this.newParticleParameters.traceStep, this.newParticleParameters.level));
 	}
 
 	random(mean, variance) {
-  		return Math.random() * (variance + variance) + mean - variance;
+		return Math.random() * (variance + variance) + mean - variance;
+	}
+
+	velocity() {
+		var speed      = this.random(this.newParticleParameters.speed.mean, this.newParticleParameters.speed.variance)*constants.dt;
+		var rotation   = this.newParticleParameters.rotation;
+		var uplift     = this.random(this.newParticleParameters.uplift, this.newParticleParameters.angularVariance);
+		var meanUplift = this.newParticleParameters.uplift;
+
+		const axis = this.sphreicalToCartesian(1, rotation, meanUplift).normalize();
+		return this.sphreicalToCartesian(speed, rotation, uplift).applyAxisAngle(axis, this.degToRad(this.random(0, 90)));
+	}
+
+	color() {
+		return new THREE.Color().setHSL(Math.random(), 1.0, 0.5);
+	}
+
+	acceleration() {
+		return Math.max(0, this.random(this.newParticleParameters.acceleration.mean, this.newParticleParameters.acceleration.variance))*constants.dt*constants.dt;
+	}
+
+	secondsToLive() {
+		return Math.max(0, this.random(this.newParticleParameters.secondsToLive.mean, this.newParticleParameters.secondsToLive.variance));
+	}
+
+	sphreicalToCartesian(speed, rotation, uplift) {
+		var sinRotation = Math.sin(rotation); var cosRotation = Math.cos(rotation);
+		var sinUplift   = Math.sin(uplift);   var cosUplift   = Math.cos(uplift);
+		var x = speed * cosUplift * cosRotation;
+		var y = speed * sinUplift;
+		var z = speed * cosUplift * sinRotation;
+
+		return new THREE.Vector3(x, y, z);
 	}
 }
 
-
-var scene, camera, renderer, geometry, mesh, material, uniforms, clock, controls;
-var sphere, points, particle;
-
-var particleManager, emitter;
-
-
-function init(){
-
-	// Init scene...
-	scene = new THREE.Scene();
-
-	// Init camera...
-	camera = new THREE.PerspectiveCamera(90*window.innerHeight/window.innerWidth, window.innerWidth/window.innerHeight, 0.1, 10000);
-	camera.position.set(-90, 90, 210);
-
-	// Init renderer...
-	renderer = new THREE.WebGLRenderer();
-	renderer.setClearColor( 0x000000, 1.0 );
-	renderer.setSize( window.innerWidth, window.innerHeight );
-	document.body.appendChild( renderer.domElement );
-
-	// Init camera orbiting controls...
-	controls = new OrbitControls( camera, renderer.domElement );
-	controls.autoRotate = true;
-
-	// Init particle manager...
-	particleManager = new ParticleManager();
-
-	// Init particle emitter...
-	emitter = new Emitter(0, 0, 0, particleManager);
-
-
-	// Init keyboard controls...
-	new InputManager();
-
-
-
-	// Create ground...
-	const groundGeometry = new THREE.PlaneGeometry(200, 200);
-	const groundmaterial = new THREE.MeshBasicMaterial({color: 0x222222, side: THREE.DoubleSide});
-	const ground = new THREE.Mesh(groundGeometry, groundmaterial);
-	ground.rotateX(-Math.PI/2);
-	scene.add(ground);
-
-
-// var dotGeometry = new THREE.Geometry();
-// dotGeometry.vertices.push(new THREE.Vector3( 1, 0, 1));
-// var dotMaterial = new THREE.PointsMaterial( { size: 1, sizeAttenuation: false } );
-// var dot = new THREE.Points( dotGeometry, dotMaterial );
-// scene.add( dot );
-// console.log(dot.geometry.attributes.position);
-}
-var stop = false;
-function animate(){
-	particleManager.updateAllParticles();
-
-	renderer.render( scene, camera );
-	if (!stop) requestAnimationFrame( animate );
-}
 
 class InputManager {
 	constructor() {
 		document.addEventListener("keypress", this.onKeyPressed);
+		document.addEventListener("keydown", this.onKeyDown);
+		document.addEventListener("keyup", this.onKeyUp);
+
+		document.getElementById("fps").value = 1/constants.dt;
+		// document.getElementById("fps").addEventListener("change", this.updateFPS);
+		document.getElementById("gravity").value = -constants.g/constants.dt/constants.dt;
+		// document.getElementById("gravity").addEventListener("change", this.updateGravity);
+
+
+		document.getElementById("environment_params").addEventListener("submit", this.updateEnvironmentParams);
+		document.getElementById("emitter_params").addEventListener("submit", this.updateEmitterParams);
+		document.getElementById("particle_params").addEventListener("submit", this.updateParticleParams);
+
+		document.getElementById("add_emitter").addEventListener("mouseup", (e) => {particleManager.addEmitter();});
+		document.getElementById("remove_emitter").addEventListener("mouseup", (e) => {particleManager.removeLastEmitter();});
+
+		this.move(0);
 	}
 
 	onKeyPressed (event) {
 		var key = event.key;
+		
 		if (key == ' ') {
-			emitter.emitParticle();
+			if (run) particleManager.emitters.forEach(emitter => {emitter.emitParticle();});
+		}
+		else if (key == 'p') {
+			run = !run;
+		}
+	}
+
+	onKeyDown(event) {
+		var key = event.key;
+		
+		if (key == 'a') {
+			move.left = true;
 		}
 		else if (key == 'd') {
-			stop = true;
+			move.right = true;
 		}
-	};
+		else if (key == 'w') {
+			move.up = true;
+		}
+		else if (key == 's') {
+			move.down = true;
+		}
+	}
+
+	onKeyUp(event) {
+		var key = event.key;
+		
+		if (key == 'a') {
+			move.left = false;
+		}
+		else if (key == 'd') {
+			move.right = false;
+		}
+		else if (key == 'w') {
+			move.up = false;
+		}
+		else if (key == 's') {
+			move.down = false;
+		}
+	}
+
+	move(speed) {
+		var oldPosition;
+		if (move.left) {
+			oldPosition = camera.position.clone();
+			camera.translateX(-1.0);
+			cameraTarget.add(camera.position.clone().sub(oldPosition));
+		}
+		if (move.right) {
+			oldPosition = camera.position.clone();
+			camera.translateX(1.0);
+			cameraTarget.add(camera.position.clone().sub(oldPosition));
+		}
+		if (move.up) {
+			oldPosition = camera.position.clone();
+			camera.translateY(1.0);
+			cameraTarget.add(camera.position.clone().sub(oldPosition));
+		}
+		if (move.down) {
+			oldPosition = camera.position.clone();
+			camera.translateY(-1.0);
+			cameraTarget.add(camera.position.clone().sub(oldPosition));
+		}
+		requestAnimationFrame(() => {this.move(0);});
+	}
+
+
+	updateEnvironmentParams(event) {
+		var old_dt = constants.dt;
+		var dt = 1/parseFloat(document.getElementById("fps").value);
+		var g = -parseFloat(document.getElementById("gravity").value);
+		var drag = 1-parseFloat(document.getElementById("drag").value)/100;
+
+		g *= (dt*dt);
+		drag **= dt;
+
+		constants.dt = dt;
+		constants.g = g;
+		constants.drag = drag;
+
+		if (old_dt != dt) {
+			particleManager.recomputeParticlesParameters(old_dt, dt);
+		}
+	}
+
+	updateEmitterParams(event) {
+		var x = parseFloat(document.getElementById("x").value);
+		var y = parseFloat(document.getElementById("y").value);
+		var z = parseFloat(document.getElementById("z").value);
+
+		var rotation = parseFloat(document.getElementById("rotation").value);
+		var uplift = parseFloat(document.getElementById("uplift").value);
+		var angularVariance = parseFloat(document.getElementById("angular_variance").value);
+
+		var accelerationMean = parseFloat(document.getElementById("acceleration_mean").value);
+		var accelerationVariance = parseFloat(document.getElementById("acceleration_variance").value);
+		var lifetimeMean = parseFloat(document.getElementById("lifetime_mean").value);
+		var lifetimeVariance = parseFloat(document.getElementById("lifetime_variance").value);
+
+		var traceLength = parseInt(document.getElementById("trace_length").value);
+		var traceStep = parseInt(document.getElementById("trace_step").value);
+
+		var level = parseInt(document.getElementById("level").value);
+
+		var id = parseInt(document.getElementById("apply_to").value)-1;
+		particleManager.emitters[id]?.setParams(x, y, z, rotation, uplift, angularVariance,
+			accelerationMean, accelerationVariance, lifetimeMean,
+			lifetimeVariance, traceLength, traceStep, level);
+	}
+
+	updateParticleParams(event) {
+		var particleExplosion = constants.particleExplosion;
+		particleExplosion.numberOfNewParticles = parseInt(document.getElementById("number_of_new_particles").value);
+		particleExplosion.speed = parseFloat(document.getElementById("speed_of_children").value);
+		particleExplosion.acceleration = parseFloat(document.getElementById("acceleration_of_children").value);
+		particleExplosion.timeToLive = parseFloat(document.getElementById("lifetime_of_children").value);
+	}
 }
 
 
+function vertexShader() {
+	return `
+	varying vec3 vPos;
+	void main() {
+		gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+		vPos = position;
+	}`
+}
 
 
+function fragmentShader() {
+	return `
+	uniform vec3 color;
+	uniform float maxDistance;
+
+	varying vec3 vPos;
+
+	void main() {
+		float distance = clamp(length(vPos), 0.0, maxDistance);
+		float opacity = 1.0 - distance / maxDistance;
+		gl_FragColor = vec4(color, opacity);
+	}`
+}
 
 init();
 animate();
